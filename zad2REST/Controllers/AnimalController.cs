@@ -14,13 +14,14 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class AnimalController : ControllerBase
     {
-        List<Animal> animals = new List<Animal>();
-        
+
+
         [HttpGet]
         public IEnumerable<Animal> GetAnimals()
         {
+            List<Animal> animals = new List<Animal>();
             SqlConnection sql = SQLConnection.GetDBConnection("db-mssql16.pjwstk.edu.pl");
-            string sqlCommand = "SELECT TOP (1000) [IdAnimal],[Name],[Description],[Category],[Area] FROM[s18807].[dbo].[Animal]";
+            string sqlCommand = "SELECT [IdAnimal],[Name],[Description],[Category],[Area] FROM[s18807].[dbo].[Animal] order by name asc";
             using (SqlCommand command = new SqlCommand(sqlCommand, sql))
             {
                 sql.Open();
@@ -47,8 +48,9 @@ namespace WebApplication1.Controllers
         [HttpGet("{orderBy}")]
         public IEnumerable<Animal> GetAnimals(string orderBy)
         {
-            SqlConnection sql= SQLConnection.GetDBConnection("db-mssql16.pjwstk.edu.pl");
-            string sqlCommand = "SELECT TOP (1000) [IdAnimal],[Name],[Description],[Category],[Area] FROM[s18807].[dbo].[Animal]";
+            List<Animal> animals = new List<Animal>();
+            SqlConnection sql = SQLConnection.GetDBConnection("db-mssql16.pjwstk.edu.pl");
+            string sqlCommand = "SELECT [IdAnimal],[Name],[Description],[Category],[Area] FROM[s18807].[dbo].[Animal] order by " + orderBy + " asc";
             using (SqlCommand command = new SqlCommand(sqlCommand, sql))
             {
                 sql.Open();
@@ -57,11 +59,11 @@ namespace WebApplication1.Controllers
                     while (reader.Read())
                     {
                         Animal a = new Animal();
-                        a.IdAnimal= (int)reader.GetValue(0);
-                        a.Name= reader.GetString(1);
-                        a.Description= reader.GetString(2);
-                        a.Category= reader.GetString(3);
-                        a.Area= reader.GetString(4);
+                        a.IdAnimal = (int)reader.GetValue(0);
+                        a.Name = reader.GetString(1);
+                        a.Description = reader.GetString(2);
+                        a.Category = reader.GetString(3);
+                        a.Area = reader.GetString(4);
                         animals.Add(a);
                     }
                     return animals;
@@ -71,28 +73,64 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPut("{id}")]
-        public HttpResponseMessage PutAnimal(string id, [FromBody] Student opt)
+        public HttpResponseMessage PutAnimal(string id, [FromBody] Animal opt)
         {
             var resp = new HttpResponseMessage();
-            resp.StatusCode = (HttpStatusCode.Accepted);
-            resp.StatusCode = (HttpStatusCode.BadRequest);
+            if (opt?.Name == null || opt?.Category == null || opt?.Area == null)
+            {
+                resp.StatusCode = (HttpStatusCode.BadRequest);
+                return resp;
+            }
+            string sqlCommand = "Update [s18807].[dbo].[Animal] SET [Name] = '" + opt.Name + "',[Description] = '" + opt.Description + "',[Category] = '" + opt.Category + "',[Area] = '" + opt.Area + "' WHERE IdAnimal="+id;
+            SqlConnection sql = SQLConnection.GetDBConnection("db-mssql16.pjwstk.edu.pl");
+            using (SqlCommand command = new SqlCommand(sqlCommand, sql))
+            {
+                sql.Open();
+                command.ExecuteNonQuery();
+            }
+            resp.StatusCode = (HttpStatusCode.Created);
+
             return resp;
         }
 
         [HttpPost]
-        public HttpResponseMessage PostAnimal([FromBody] Student opt)
+        public HttpResponseMessage PostAnimal([FromBody] Animal opt)
         {
-
             var resp = new HttpResponseMessage();
+            if (opt?.Name == null|| opt?.Category==null||opt?.Area==null)
+            {
+                resp.StatusCode = (HttpStatusCode.BadRequest);
+                return resp;
+            }
+
+            string sqlCommand = "INSERT INTO[s18807].[dbo].[Animal]([Name],[Description],[Category],[Area]) VALUES('" + opt.Name + "','" + opt.Description + "','" + opt.Category + "','" + opt.Area + "')";
+            SqlConnection sql = SQLConnection.GetDBConnection("db-mssql16.pjwstk.edu.pl");
+            using (SqlCommand command = new SqlCommand(sqlCommand, sql))
+            {
+                sql.Open();
+                command.ExecuteNonQuery();
+            }
             resp.StatusCode = (HttpStatusCode.Created);
+
             return resp;
         }
 
 
         [HttpDelete("{id}")]
-        public string RemoveAnimal(string id)
+        public HttpResponseMessage RemoveAnimal(string id)
         {
-            return "Not Found:" + id;
+            var resp = new HttpResponseMessage();
+
+            string sqlCommand = "DELETE FROM [s18807].[dbo].[Animal] WHERE IdAnimal=" + id;
+            SqlConnection sql = SQLConnection.GetDBConnection("db-mssql16.pjwstk.edu.pl");
+            using (SqlCommand command = new SqlCommand(sqlCommand, sql))
+            {
+                sql.Open();
+                command.ExecuteNonQuery();
+            }
+            resp.StatusCode = (HttpStatusCode.OK);
+
+            return resp;
         }
     }
 }
