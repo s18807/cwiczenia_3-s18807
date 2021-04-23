@@ -15,15 +15,7 @@ namespace zad2REST
     {
         public static void Main(string[] args)
         {
-            string path = Directory.GetCurrentDirectory() + "\\DB.csv";
-            WebApplication1.Controllers.StudentsController._studentlist = File.ReadAllLines(path)
-                                           .Skip(1)
-                                           .Select(v => Student.FromCsv(v))
-                                           .ToList();
-            foreach (Student s in WebApplication1.Controllers.StudentsController._studentlist) {
-                Console.WriteLine(s);
-            }
-                CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
